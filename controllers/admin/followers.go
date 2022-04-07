@@ -5,9 +5,7 @@ import (
 	"net/http"
 
 	"github.com/owncast/owncast/activitypub/persistence"
-	"github.com/owncast/owncast/activitypub/requests"
 	"github.com/owncast/owncast/controllers"
-	"github.com/owncast/owncast/core/data"
 )
 
 // ApproveFollower will approve a federated follow request.
@@ -35,19 +33,19 @@ func ApproveFollower(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		localAccountName := data.GetDefaultFederationUsername()
+		// localAccountName := data.GetDefaultFederationUsername()
 
-		follower, err := persistence.GetFollower(approval.ActorIRI)
-		if err != nil {
-			controllers.WriteSimpleResponse(w, false, err.Error())
-			return
-		}
+		// follower, err := persistence.GetFollower(approval.ActorIRI)
+		// if err != nil {
+		// 	controllers.WriteSimpleResponse(w, false, err.Error())
+		// 	return
+		// }
 
-		// Send the approval to the follow requestor.
-		if err := requests.SendFollowAccept(follower.Inbox, follower.FollowRequestIri, localAccountName); err != nil {
-			controllers.WriteSimpleResponse(w, false, err.Error())
-			return
-		}
+		// // Send the approval to the follow requestor.
+		// if err := requests.SendFollowAccept(follower.Inbox, follower.FollowRequestIri, localAccountName); err != nil {
+		// 	controllers.WriteSimpleResponse(w, false, err.Error())
+		// 	return
+		// }
 	} else {
 		// Remove/block a follower
 		if err := persistence.BlockOrRejectFollower(approval.ActorIRI); err != nil {

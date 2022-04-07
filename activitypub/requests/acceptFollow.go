@@ -2,6 +2,7 @@ package requests
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 
 	"github.com/go-fed/activity/streams"
@@ -14,8 +15,8 @@ import (
 )
 
 // SendFollowAccept will send an accept activity to a follow request from a specified local user.
-func SendFollowAccept(inbox *url.URL, followRequestIRI *url.URL, fromLocalAccountName string) error {
-	followAccept := makeAcceptFollow(followRequestIRI, fromLocalAccountName)
+func SendFollowAccept(inbox *url.URL, originalFollowActivity vocab.ActivityStreamsFollow, fromLocalAccountName string) error {
+	followAccept := makeAcceptFollow(originalFollowActivity, fromLocalAccountName)
 	localAccountIRI := apmodels.MakeLocalIRIForAccount(fromLocalAccountName)
 
 	var jsonmap map[string]interface{}
@@ -26,26 +27,34 @@ func SendFollowAccept(inbox *url.URL, followRequestIRI *url.URL, fromLocalAccoun
 		return err
 	}
 
+	fmt.Println(string(b)) //nolint:forbidigo
 	workerpool.AddToOutboundQueue(req)
 
 	return nil
 }
 
-func makeAcceptFollow(followRequestIri *url.URL, fromAccountName string) vocab.ActivityStreamsAccept {
+func makeAcceptFollow(originalFollowActivity vocab.ActivityStreamsFollow, fromAccountName string) vocab.ActivityStreamsAccept {
 	acceptIDString := shortid.MustGenerate()
 	acceptID := apmodels.MakeLocalIRIForResource(acceptIDString)
-	actorID := apmodels.MakeLocalIRIForAccount(fromAccountName)
+	// actorID := apmodels.MakeLocalIRIForAccount(fromAccountName)
 
 	accept := streams.NewActivityStreamsAccept()
 	idProperty := streams.NewJSONLDIdProperty()
 	idProperty.SetIRI(acceptID)
 	accept.SetJSONLDId(idProperty)
 
-	actor := apmodels.MakeActorPropertyWithID(actorID)
-	accept.SetActivityStreamsActor(actor)
+	// actorIRI := apmodels.MakeLocalIRIForAccount(fromAccountName)
+	// publicKey := crypto.GetPublicKey(actorIRI)
+	person := apmodels.MakeServiceForAccount(fromAccountName)
+	personProperty := streams.NewActivityStreamsActorProperty()
+	personProperty.AppendActivityStreamsService(person)
+	accept.SetActivityStreamsActor(personProperty)
+
+	// actor := apmodels.MakeActorPropertyWithID(actorID)
+	// accept.SetActivityStreamsActor(actor)
 
 	object := streams.NewActivityStreamsObjectProperty()
-	object.AppendIRI(followRequestIri)
+	object.AppendActivityStreamsFollow(originalFollowActivity)
 	accept.SetActivityStreamsObject(object)
 
 	return accept
