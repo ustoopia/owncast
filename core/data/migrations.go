@@ -15,15 +15,15 @@ func migrateToSchema5(db *sql.DB) {
 	// Access tokens have been broken into its own table.
 
 	// Authenticated bool added to the users table.
-	stmt, err := db.Prepare("ALTER TABLE users ADD authenticated_at timestamp DEFAULT null")
-	if err != nil {
-		log.Errorln("error running migration, you may experience issues: ", err)
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec()
-	if err != nil {
-		log.Errorln("error running migration, you may experience issues: ", err)
-	}
+	// stmt, err := db.Prepare("ALTER TABLE users ADD authenticated_at timestamp DEFAULT null")
+	// if err != nil {
+	// 	log.Errorln("error running migration, you may experience issues: ", err)
+	// }
+	// defer stmt.Close()
+	// _, err = stmt.Exec()
+	// if err != nil {
+	// 	log.Errorln("error running migration, you may experience issues: ", err)
+	// }
 
 	// Migrate the access tokens from the users table to the access tokens table.
 	query := `SELECT id, access_token, created_at FROM users`
@@ -66,7 +66,7 @@ func migrateToSchema5(db *sql.DB) {
 	}
 
 	// Remove old access token column from the users table.
-	stmt, err = db.Prepare("ALTER TABLE users DROP COLUMN access_token")
+	stmt, err := db.Prepare("ALTER TABLE users DROP COLUMN access_token")
 	if err != nil {
 		log.Fatal(err)
 	}
